@@ -1,0 +1,296 @@
+<%- include('../partials/header'); %>
+
+<div class="container-fluid">
+  <div class="row">
+    <%- include('../partials/sidebar'); %>
+
+    <main class="col-lg-12 main">
+
+      <% if(!locals.hasDevices) { %>
+      <div class="m-4">
+        <div class="card text-center">
+          <h2 class="card-header">Welcome to the CO2 dashboard!</h2>
+          <div class="card-body">
+            <p class="card-text lead">
+              It seems like you haven't added any devices yet,<br>so feel free to navigate to <a href="/devices"
+                class="text-decoration-none">devices</a> to create your first device.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <% } %>
+
+      <% if(locals.hasDevices) { %>
+
+      <h4 class="border-bottom mx-1 mt-4">Realtime data</h4>
+
+      <div class="row">
+
+        <div class="col my-3">
+          <div id="sensor-data-menu" class="d-flex align-self-center px-3 py-3">
+            <div class="dropdown">
+              <h4>Device</h4>
+              <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenuButton"
+                data-bs-toggle="dropdown" aria-expanded="false">
+                <%= locals.currentDeviceName %>
+              </button>
+              <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <% for(let i = 0; i < locals.devices.length; i++) { %>
+                <%   if(locals.devices[i]['deviceName'] !== locals.currentDeviceName) { %>
+                <li><a class="dropdown-item"
+                    href="/?d=<%=locals.devices[i]['deviceID']%>&t=<%=locals.timeScale%>"><%=locals.devices[i]['deviceName']%></a>
+                </li>
+                <% }} %>
+              </ul>
+            </div>
+            <div id="timeframe" class="mx-3">
+              <h4>Timeframe</h4>
+              <a class="btn btn-light mx-1" href="/?d=<%=locals.currentDeviceID%>&t=10" role="button">10m</a>
+              <a class="btn btn-light mx-1" href="/?d=<%=locals.currentDeviceID%>&t=60" role="button">1h</a>
+              <a class="btn btn-light mx-1" href="/?d=<%=locals.currentDeviceID%>&t=480" role="button">8h</a>
+              <a class="btn btn-light mx-1" href="/?d=<%=locals.currentDeviceID%>&t=1440" role="button">24h</a>
+            </div>
+
+
+          </div>
+        </div>
+      </div>
+
+
+      <div id="sensor-readings" class="row row-cols-1 row-cols-lg-3 gx-3">
+
+        <div class="col mt-4">
+          <div id="co2-reading" class="sensorReadingBox">
+            <div data-feather="cloud"></div>
+            <b class="dataCategory">CO2</b>
+            <div class="data">
+              <%=co2%>
+              <span class="unit">PPM</span>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="col mt-4">
+          <div id="temperature-reading" class="sensorReadingBox">
+            <div data-feather="thermometer"></div>
+            <b class="dataCategory">Temperature</b>
+            <div class="data">
+              <%=temperature%>
+              <span class="unit">°C</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="col mt-4">
+          <div id="humidity-reading" class="sensorReadingBox">
+            <div data-feather="droplet"></div>
+            <b class="dataCategory">Humidity</b>
+            <div class="data">
+              <%=humidity%>
+              <span class="unit">%</span>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!--  
+      SENSOR GRAPHS AND MENU
+      -->
+      <div class="row row-cols-1 gx-3">
+
+        <% if(locals.hasSensorRecords) { %>
+
+        <div class="col col-lg-4">
+          <div id="co2-chart" class="border sensor-chart"></div>
+        </div>
+
+        <div class="col col-lg-4">
+          <div id="temperature-chart" class="border sensor-chart"></div>
+        </div>
+
+        <div class="col col-lg-4">
+          <div id="humidity-chart" class="border sensor-chart"></div>
+        </div>
+
+      </div>
+
+
+      <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+
+      <script>
+        var sensorData = <%- JSON.stringify(locals.sensorRecords) %>
+
+              //Raw data
+        var co2Readings = [];
+        var temperatureReadings = [];
+        var HumidityReadings = [];
+
+        //For the chart
+        var co2Data = [];
+        var temperatureData = [];
+        var humidityData = [];
+
+
+        for (let i = 0; i < sensorData.length; i++) {
+          let element = [];
+          element.push(Number(sensorData[i]['timeStamp']) + 3600000); //add 1 hour for UTC offset
+          element.push(Number(sensorData[i]['co2']));
+          co2Data.push(element);
+
+          element = [];
+          element.push(Number(sensorData[i]['timeStamp']) + 3600000); //add 1 hour for UTC offset
+          element.push(Number(sensorData[i]['temperature']));
+          temperatureData.push(element);
+
+          element = [];
+          element.push(Number(sensorData[i]['timeStamp']) + 3600000); //add 1 hour for UTC offset
+          element.push(Number(sensorData[i]['humidity']));
+          humidityData.push(element);
+
+          co2Readings.push(Number(sensorData[i]['co2']));
+          temperatureReadings.push(Number(sensorData[i]['temperature']));
+          HumidityReadings.push(Number(sensorData[i]['humidity']));
+        }
+
+        var maxCo2 = Math.max.apply(null, co2Readings);
+        var minCo2 = Math.min.apply(null, co2Readings);
+
+        var maxTemp = Math.max.apply(null, temperatureReadings);
+        var minTemp = Math.min.apply(null, temperatureReadings);
+
+        var maxHumidity = Math.max.apply(null, HumidityReadings);
+        var minHumidity = Math.min.apply(null, HumidityReadings);
+
+
+        var options = {
+
+          chart: {
+            zoom: { enabled: false },
+            type: 'area',
+            toolbar: { show: false },
+            animations: { enabled: false }
+
+          },
+          colors: ['#00c060'],
+          series: [{
+            name: 'CO2',
+            data: co2Data
+          }],
+          stroke: {
+            curve: 'smooth'
+          },
+          dataLabels: {
+            enabled: false
+          },
+          xaxis: {
+            type: 'datetime',
+          },
+          yaxis: {
+            tickAmount: 4,
+            max: maxCo2 + 100,
+            min: minCo2 - 100
+          },
+          tooltip: {
+            x: {
+              format: 'dd/MM/yy HH:mm'
+            },
+          }
+        };
+
+        var temperatureOptions = {
+
+          chart: {
+            zoom: { enabled: false },
+            type: 'area',
+            toolbar: { show: false },
+            animations: { enabled: false }
+
+          },
+          colors: ['#ffae00'],
+          series: [{
+            name: 'Temperature',
+            data: temperatureData
+          }],
+          stroke: {
+            curve: 'smooth'
+          },
+          dataLabels: {
+            enabled: false
+          },
+          xaxis: {
+            type: 'datetime',
+          },
+          yaxis: {
+
+            forceNiceScale: true,
+            tickAmount: 4,
+            max: maxTemp + 1,
+            min: minTemp - 1
+          },
+          tooltip: {
+            x: {
+              format: 'dd/MM/yy HH:mm'
+            },
+          }
+        };
+
+        var humidityOptions = {
+
+          chart: {
+            zoom: { enabled: false },
+            type: 'area',
+            toolbar: { show: false },
+            animations: { enabled: false }
+
+          },
+          colors: ['#00aeff'],
+          series: [{
+            name: 'Humidity',
+            data: humidityData
+          }],
+          stroke: {
+            curve: 'smooth'
+          },
+          dataLabels: {
+            enabled: false
+          },
+          xaxis: {
+            type: 'datetime',
+          },
+          yaxis: {
+            tickAmount: 4,
+            max: maxHumidity + 10,
+            min: minHumidity - 10
+          },
+          tooltip: {
+            x: {
+              format: 'dd/MM/yy HH:mm'
+            },
+          }
+        };
+
+        var chart = new ApexCharts(document.querySelector("#co2-chart"), options);
+        chart.render();
+        var chart2 = new ApexCharts(document.querySelector("#temperature-chart"), temperatureOptions);
+        chart2.render();
+        var chart3 = new ApexCharts(document.querySelector("#humidity-chart"), humidityOptions);
+        chart3.render();
+
+      </script>
+
+      <% } %>
+      <% } %>
+  </div>
+  </main>
+</div>
+</div>
+
+<%- include('../partials/footer'); %>
+</body>
+
+</html>
