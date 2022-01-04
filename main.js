@@ -190,6 +190,8 @@ app.post('/login', async (req, res) => {
     return;
   }
 
+  username = username.toLowerCase();
+
   try {
     let authenticated = await userManagement.authenticate(username, password);
 
@@ -230,6 +232,8 @@ app.post('/api', async (req, res) => {
     res.status(200).send('OK');
     return;
   }
+
+  username = username.toLowerCase();
 
   //Check to see if this device actually exists and belongs to the user
   try {
