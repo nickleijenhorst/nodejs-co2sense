@@ -1,5 +1,5 @@
-@media (max-width: 767.98px) {
-
+:root {
+  --sidebar-width:200px;
 }
 
 body {
@@ -9,8 +9,8 @@ body {
 }
 
 .feather {
-  width: 16px;
-  height: 16px;
+  width: 24px;
+  height: 24px;
   vertical-align: text-bottom;
 }
 
@@ -20,6 +20,9 @@ body {
 }
 
 #sensor-data-menu {
+  display:flex;
+  flex-wrap: wrap;
+  gap: 40px;
   background: rgb(0,132,209);
   background: linear-gradient(90deg, rgba(0,132,209,1) 0%, rgba(0,152,228,1) 100%);
   vertical-align: middle;
@@ -28,6 +31,10 @@ body {
 #sensor-data-menu span {
   font-size:1.4rem;
   font-weight:600;
+}
+
+#timeframe {
+  min-width:fit-content;
 }
 
 .copybutton {
@@ -86,13 +93,6 @@ body {
   position:relative;
 }
 
-@media (min-width: 992px) {
-  .main{
-    padding-left:195px;
-  }
-}
-
-
 .sensor-chart {
   display:block;
   position:relative;
@@ -101,7 +101,7 @@ body {
 
 .sidebar {
   position: fixed;
-  width:180px;
+  width:100%;
   top: 1rem;
   /* rtl:raw:
   right: 0;
@@ -149,7 +149,7 @@ body {
 
 .sidebar .nav-link {
   vertical-align:baseline;
-  font-size:1.3em;
+  font-size:2em;
   color: #333;
 }
 
@@ -186,7 +186,7 @@ body {
   font-size: 1rem;
   background-color: rgba(0, 0, 0, .25);
   box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
-  width:180px;
+  width:var(--sidebar-width);
 }
 
 .navbar .navbar-toggler {
@@ -216,4 +216,21 @@ body {
   font-weight: normal;
   font-size:1.3em;
   color: rgb(153, 15, 15);
+}
+
+@media (min-width: 992px) {
+  .main {
+    padding-left: calc(var(--sidebar-width) + 12px);
+  }
+  .sidebar {
+    width:var(--sidebar-width);
+  }
+  .sidebar .nav-link {
+    font-size:1.4em;
+  }
+  .feather {
+    width: 16px;
+    height: 16px;
+    vertical-align: text-bottom;
+  }
 }
